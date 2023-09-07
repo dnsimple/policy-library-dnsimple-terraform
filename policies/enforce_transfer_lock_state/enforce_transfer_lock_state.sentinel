@@ -1,0 +1,61 @@
+import "tfplan/v2" as tfplan
+import "helpers"
+
+param valid_actions default [
+	["no-op"],
+	["create"],
+	["update"],
+]
+
+// The enforced transfer lock state
+param transfer_lock_state default true
+
+// A list of domain names that should have transfer lock enforced
+param transfer_lock_enforced_domain_names default []
+
+doc = {
+	"allowed":   transfer_lock_state,
+	"error":     " is not an allowed transfer_lock_enabled state.",
+	"file_name": "enforce_transfer_lock_state.sentinel",
+	"name":      "Enforeced Domain Transfer Lock State",
+	"md_url":    "https://github.com/dnsimple/terraform-intel-gcp-vm/blob/main/policies.md",
+	"parameter": "transfer_lock_enabled",
+	"provider":  "dnsimple/dnsimple",
+	"resource":  "dnsimple_registered_domain",
+	"violation": "The domain transfer_lock_enabled state should be ${transfer_lock_state}",
+}
+
+// Filter resources by type
+all_resources = filter tfplan.resource_changes as _, rc {
+	rc.type is doc.resource and
+		rc.mode is "managed" and
+		rc.change.actions in valid_actions
+}
+
+if (length(transfer_lock_enforced_domain_names) else 0) > 0 {
+	all_resources = filter all_resources as _, r {
+		r.change.after.name in transfer_lock_enforced_domain_names
+	}
+}
+
+// Filter resources that violate a given condition
+violators = filter all_resources as _, r {
+	r.change.after.transfer_lock_enabled != transfer_lock_state
+}
+
+// Build a summary report
+summaryreport = {
+	"name": doc.name,
+	"violations": map violators as _, violation {
+		{
+			"name":    violation.name,
+			"address": violation.address,
+			"type":    violation.type,
+			"message": string(violation.change.after.transfer_lock_enabled) + doc.error,
+		}
+	},
+}
+
+main = rule {
+	helpers.summary(summaryreport, doc)
+}
