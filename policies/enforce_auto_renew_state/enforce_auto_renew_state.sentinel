@@ -1,0 +1,61 @@
+import "tfplan/v2" as tfplan
+import "helpers"
+
+param valid_actions default [
+	["no-op"],
+	["create"],
+	["update"],
+]
+
+// The enforced auto renewal state
+param auto_renew_state default true
+
+// A list of domain names that should have auto renewal enforced
+param auto_renew_enforced_domain_names default []
+
+doc = {
+	"allowed":   auto_renew_state,
+	"error":     " is not an allowed auto_renew_enabled state.",
+	"file_name": "enforce_auto_renew_state.sentinel",
+	"name":      "Enforeced Domain Auto Renew State",
+	"md_url":    "https://github.com/dnsimple/policy-library-dnsimple-terraform/blob/main/README.md",
+	"parameter": "auto_renew_enabled",
+	"provider":  "dnsimple/dnsimple",
+	"resource":  "dnsimple_registered_domain",
+	"violation": "The domain auto_renew_enabled state should be ${auto_renew_state}",
+}
+
+// Filter resources by type
+all_resources = filter tfplan.resource_changes as _, rc {
+	rc.type is doc.resource and
+		rc.mode is "managed" and
+		rc.change.actions in valid_actions
+}
+
+if (length(auto_renew_enforced_domain_names) else 0) > 0 {
+	all_resources = filter all_resources as _, r {
+		r.change.after.name in auto_renew_enforced_domain_names
+	}
+}
+
+// Filter resources that violate a given condition
+violators = filter all_resources as _, r {
+	r.change.after.auto_renew_enabled != auto_renew_state
+}
+
+// Build a summary report
+summaryreport = {
+	"name": doc.name,
+	"violations": map violators as _, violation {
+		{
+			"name":    violation.name,
+			"address": violation.address,
+			"type":    violation.type,
+			"message": string(violation.change.after.auto_renew_enabled) + doc.error,
+		}
+	},
+}
+
+main = rule {
+	helpers.summary(summaryreport, doc)
+}
