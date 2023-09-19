@@ -1,0 +1,60 @@
+terraform_version = "1.5.6"
+
+resource_changes = {
+	"dnsimple_registered_domain.test": {
+		"address": "dnsimple_registered_domain.test",
+		"change": {
+			"actions": [
+				"create",
+			],
+			"after": {
+				"account_id":            null,
+				"auto_renew_enabled":    false,
+				"contact_id":            10030,
+				"dnssec_enabled":        false,
+				"expires_at":            null,
+				"id":                    null,
+				"name":                  "example.com",
+				"state":                 null,
+				"transfer_lock_enabled": false,
+				"unicode_name":          null,
+				"whois_privacy_enabled": false,
+			},
+		},
+		"deposed":        "",
+		"index":          null,
+		"mode":           "managed",
+		"module_address": "module.dnsimple",
+		"name":           "instance",
+		"provider_name":  "registry.terraform.io/dnsimple/dnsimple",
+		"type":           "dnsimple_registered_domain",
+	},
+	"dnsimple_registered_domain.test_2": {
+		"address": "dnsimple_registered_domain.test_2",
+		"change": {
+			"actions": [
+				"create",
+			],
+			"after": {
+				"account_id":            null,
+				"auto_renew_enabled":    false,
+				"contact_id":            10030,
+				"dnssec_enabled":        false,
+				"expires_at":            null,
+				"id":                    null,
+				"name":                  "example-2.eu",
+				"state":                 null,
+				"transfer_lock_enabled": false,
+				"unicode_name":          null,
+				"whois_privacy_enabled": false,
+			},
+		},
+		"deposed":        "",
+		"index":          null,
+		"mode":           "managed",
+		"module_address": "module.dnsimple",
+		"name":           "instance",
+		"provider_name":  "registry.terraform.io/dnsimple/dnsimple",
+		"type":           "dnsimple_registered_domain",
+	},
+}
