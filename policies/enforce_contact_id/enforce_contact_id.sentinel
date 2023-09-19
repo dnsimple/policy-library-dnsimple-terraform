@@ -1,0 +1,63 @@
+import "tfplan/v2" as tfplan
+import "strings"
+import "helpers"
+
+param valid_actions default [
+	["no-op"],
+	["create"],
+	["update"],
+]
+
+// The enforced contact ids
+param allowed_contact_ids
+
+// A list of domain names that should have contact_id enforced
+param contact_id_enforced_domain_names default []
+
+doc = {
+	"allowed":   allowed_contact_ids,
+	"error":     " is not an allowed contact id.",
+	"file_name": "enforce_contact_id.sentinel",
+	"name":      "Enforeced Domain Contact ID",
+	"md_url":    "https://github.com/dnsimple/policy-library-dnsimple-terraform/blob/main/README.md",
+	"parameter": "contact_id",
+	"provider":  "dnsimple/dnsimple",
+	"resource":  "dnsimple_registered_domain",
+	"violation": "The domain contact_id should be in " + strings.join(allowed_contact_ids, ", ") + ".",
+}
+
+// Filter resources by type
+all_resources = filter tfplan.resource_changes as _, rc {
+	rc.type is doc.resource and
+		rc.mode is "managed" and
+		rc.change.actions in valid_actions
+}
+
+// Filter resources by domain name
+if (length(contact_id_enforced_domain_names) else 0) > 0 {
+	all_resources = filter all_resources as _, r {
+		r.change.after.name in contact_id_enforced_domain_names
+	}
+}
+
+// Filter resources that violate a given condition
+violators = filter all_resources as _, r {
+	r.change.after.contact_id not in allowed_contact_ids
+}
+
+// Build a summary report
+summaryreport = {
+	"name": doc.name,
+	"violations": map violators as _, violation {
+		{
+			"name":    violation.name,
+			"address": violation.address,
+			"type":    violation.type,
+			"message": string(violation.change.after.contact_id) + doc.error,
+		}
+	},
+}
+
+main = rule {
+	helpers.summary(summaryreport, doc)
+}
