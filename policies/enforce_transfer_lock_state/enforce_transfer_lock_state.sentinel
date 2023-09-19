@@ -18,7 +18,7 @@ doc = {
 	"error":     " is not an allowed transfer_lock_enabled state.",
 	"file_name": "enforce_transfer_lock_state.sentinel",
 	"name":      "Enforeced Domain Transfer Lock State",
-	"md_url":    "https://github.com/dnsimple/terraform-intel-gcp-vm/blob/main/policies.md",
+	"md_url":    "https://github.com/dnsimple/policy-library-dnsimple-terraform/blob/main/README.md",
 	"parameter": "transfer_lock_enabled",
 	"provider":  "dnsimple/dnsimple",
 	"resource":  "dnsimple_registered_domain",
