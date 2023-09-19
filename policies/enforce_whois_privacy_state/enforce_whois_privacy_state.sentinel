@@ -1,0 +1,76 @@
+import "tfplan/v2" as tfplan
+import "strings"
+import "helpers"
+
+param valid_actions default [
+	["no-op"],
+	["create"],
+	["update"],
+]
+
+// The enforced whois privacy state
+param whois_privacy_state default true
+
+// A list of domain names that should have whois privacy enforced
+param whois_privacy_enforced_domain_names default []
+
+// A list of TLDs that should be excluded from the enforcement
+param whois_privacy_enforced_domain_tlds default []
+
+doc = {
+	"allowed":   whois_privacy_state,
+	"error":     " is not an allowed whois_privacy_enabled state.",
+	"file_name": "enforce_whois_privacy_state.sentinel",
+	"name":      "Enforeced Domain Whois Privacy State",
+	"md_url":    "https://github.com/dnsimple/policy-library-dnsimple-terraform/blob/main/README.md",
+	"parameter": "whois_privacy_enabled",
+	"provider":  "dnsimple/dnsimple",
+	"resource":  "dnsimple_registered_domain",
+	"violation": "The domain whois_privacy_enabled state should be ${whois_privacy_state}",
+}
+
+// Filter resources by type
+all_resources = filter tfplan.resource_changes as _, rc {
+	rc.type is doc.resource and
+		rc.mode is "managed" and
+		rc.change.actions in valid_actions
+}
+
+// Filter resources by TLD
+if (length(whois_privacy_enforced_domain_tlds) else 0) > 0 {
+	all_resources = filter all_resources as _, r {
+		// Check if the domain name ends with any of the TLDs
+		all whois_privacy_enforced_domain_tlds as _, tld {
+			!strings.has_suffix(r.change.after.name, strings.to_lower(tld))
+		}
+	}
+}
+
+// Filter resources by domain name
+if (length(whois_privacy_enforced_domain_names) else 0) > 0 {
+	all_resources = filter all_resources as _, r {
+		r.change.after.name in whois_privacy_enforced_domain_names
+	}
+}
+
+// Filter resources that violate a given condition
+violators = filter all_resources as _, r {
+	r.change.after.whois_privacy_enabled != whois_privacy_state
+}
+
+// Build a summary report
+summaryreport = {
+	"name": doc.name,
+	"violations": map violators as _, violation {
+		{
+			"name":    violation.name,
+			"address": violation.address,
+			"type":    violation.type,
+			"message": string(violation.change.after.whois_privacy_enabled) + doc.error,
+		}
+	},
+}
+
+main = rule {
+	helpers.summary(summaryreport, doc)
+}
