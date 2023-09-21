@@ -2,7 +2,7 @@
 
 ## main
 
-## 1.1.0
+## 0.2.0
 
 FEATURES:
 
@@ -11,7 +11,7 @@ FEATURES:
 - **New Policy:** `enforce_dnssec_state` (dnsimple/policy-library-dnsimple-terraform#1)
 - **New Policy:** `enforce_whois_privacy_state` (dnsimple/policy-library-dnsimple-terraform#1)
 
-## 1.0.0
+## 0.1.0
 
 FEATURES:
 
