@@ -1,4 +1,4 @@
-# Contributing to DNSimple/terraform-provider
+# Contributing to DNSimple/policy-library-dnsimple-terraform
 
 ## Getting started
 
@@ -7,70 +7,24 @@
 Clone the repository and move into it:
 
 ```shell
-git clone git@github.com:dnsimple/terraform-provider-dnsimple.git
-cd terraform-provider-dnsimple
+git clone git@github.com:dnsimple/policy-library-dnsimple-terraform.git
+cd policy-library-dnsimple-terraform
 ```
 
-#### 2. Build and test
+#### 2. Test
 
-If you wish to work on the provider, you'll first need Go installed on your machine (version 1.18+ is required). You'll also need to correctly setup a GOPATH, as well as adding $GOPATH/bin to your $PATH.
+You will require Sentinel (>= 0.23) to run the tests. You can download it from [here](https://docs.hashicorp.com/sentinel/downloads).
 
-To compile the provider, run make build. This will build the provider and put the provider binary in the $GOPATH/bin directory.
+To run a tests for a policy you can use the following command:
 
 ```shell
-$ make build
-...
-$ $GOPATH/bin/terraform-provider-dnsimple
-...
+make test name="enforce_contact_id.sentinel"
 ```
 
-
-## Testing
+Alternatively, you can run all the tests with:
 
 ```shell
-make test
-```
-
-You can also run the integration tests like:
-
-```shell
-DNSIMPLE_ACCOUNT=12345 DNSIMPLE_TOKEN="adf23cf" DNSIMPLE_DOMAIN=example.com DNSIMPLE_SANDBOX=true make testacc
-```
-
-### Testing the let's encrypt resource and the certificate data-source
-
-Our sandbox environment does not allow purchasing or issue certificates. For that reason, if you want to test the
-`resource_dnsimple_lets_encrypt_certificate` you will have to run the tests in production
-(setting `DNSIMPLE_SANDBOX=false` in the shell).
-
-You will have to set the following env variables in your shell:
-   - `DNSIMPLE_CERTIFICATE_NAME` the name for which to request the certificate i.e. **www**
-   - `DNSIMPLE_CERTIFICATE_ID` the certificate ID used in the datasource test
-
-## Sideload the plugin
-
-Sideload the plugin
-
-```shell
-make install
-# Replace `darwin_arm64` with your arch. GOBIN should be where the Go built binary is installed to.
-ln -s "$GOBIN/terraform-provider-dnsimple" "$HOME/.terraform.d/plugins/terraform.local/dnsimple/dnsimple/0.1.0/darwin_arm64/."
-```
-
-Use this as the provider configuration:
-
-```tf
-dnsimple = {
-  source  = "terraform.local/dnsimple/dnsimple"
-  version = "0.1.0"
-}
-```
-
-You can use the `./example/simple.tf` config to test the provider.
-
-```shell
-cd example
-terraform init && terraform apply --auto-approve
+make tests
 ```
 
 ## Releasing
@@ -97,4 +51,4 @@ The following instructions uses `$VERSION` as a placeholder, where `$VERSION` is
     git push origin --tags
     ```
 
-1. CI and goreleaser will handle the rest
+1. Tags are automatically published to the Terraform Policy Registry through webhooks.
