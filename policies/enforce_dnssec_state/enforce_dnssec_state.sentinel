@@ -1,0 +1,76 @@
+import "tfplan/v2" as tfplan
+import "strings"
+import "helpers"
+
+param valid_actions default [
+	["no-op"],
+	["create"],
+	["update"],
+]
+
+// The enforced dnssec state
+param dnssec_state default true
+
+// A list of domain names that should have dnssec enforced
+param dnssec_enforced_domain_names default []
+
+// A list of TLDs that should be excluded from the enforcement
+param dnssec_enforced_domain_tlds default []
+
+doc = {
+	"allowed":   dnssec_state,
+	"error":     " is not an allowed dnssec_enabled state.",
+	"file_name": "enforce_dnssec_state.sentinel",
+	"name":      "Enforeced Domain DNSSEC State",
+	"md_url":    "https://github.com/dnsimple/policy-library-dnsimple-terraform/blob/main/README.md",
+	"parameter": "dnssec_enabled",
+	"provider":  "dnsimple/dnsimple",
+	"resource":  "dnsimple_registered_domain",
+	"violation": "The domain dnssec_enabled state should be ${dnssec_state}",
+}
+
+// Filter resources by type
+all_resources = filter tfplan.resource_changes as _, rc {
+	rc.type is doc.resource and
+		rc.mode is "managed" and
+		rc.change.actions in valid_actions
+}
+
+// Filter resources by TLD
+if (length(dnssec_enforced_domain_tlds) else 0) > 0 {
+	all_resources = filter all_resources as _, r {
+		// Check if the domain name ends with any of the TLDs
+		all dnssec_enforced_domain_tlds as _, tld {
+			!strings.has_suffix(r.change.after.name, strings.to_lower(tld))
+		}
+	}
+}
+
+// Filter resources by domain name
+if (length(dnssec_enforced_domain_names) else 0) > 0 {
+	all_resources = filter all_resources as _, r {
+		r.change.after.name in dnssec_enforced_domain_names
+	}
+}
+
+// Filter resources that violate a given condition
+violators = filter all_resources as _, r {
+	r.change.after.dnssec_enabled != dnssec_state
+}
+
+// Build a summary report
+summaryreport = {
+	"name": doc.name,
+	"violations": map violators as _, violation {
+		{
+			"name":    violation.name,
+			"address": violation.address,
+			"type":    violation.type,
+			"message": string(violation.change.after.dnssec_enabled) + doc.error,
+		}
+	},
+}
+
+main = rule {
+	helpers.summary(summaryreport, doc)
+}
