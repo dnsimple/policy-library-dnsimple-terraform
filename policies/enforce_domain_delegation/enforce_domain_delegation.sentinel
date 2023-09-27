@@ -1,0 +1,79 @@
+import "tfplan/v2" as tfplan
+import "strings"
+import "helpers"
+
+param valid_actions default [
+	["no-op"],
+	["create"],
+	["update"],
+]
+
+// The enforced delegation records
+param allowed_delegation_records default [
+	"ns1.dnsimple.com",
+	"ns2.dnsimple.com",
+	"ns3.dnsimple.com",
+	"ns4.dnsimple.com",
+	"ns4.dnsimple-edge.org",
+]
+
+// A list of domain names that should have domain delegation enforced
+param domain_delegation_enforced_domain_names default []
+
+doc = {
+	"allowed":   allowed_delegation_records,
+	"error":     " is not an allowed name_servers set.",
+	"file_name": "enforce_domain_delegation.sentinel",
+	"name":      "Enforeced Domain Delegation",
+	"md_url":    "https://github.com/dnsimple/policy-library-dnsimple-terraform/blob/main/README.md",
+	"parameter": "name_servers",
+	"provider":  "dnsimple/dnsimple",
+	"resource":  "dnsimple_domain_delegation",
+	"violation": "The domain name_servers should only include " + strings.join(allowed_delegation_records, ", ") + ".",
+}
+
+// Filter resources by type
+all_resources = filter tfplan.resource_changes as _, rc {
+	rc.type is doc.resource and
+		rc.mode is "managed" and
+		rc.change.actions in valid_actions
+}
+
+// Check if all the delegation records are included in the name_servers
+all_delegation_records_included = func(name_servers) {
+	allowed = doc.allowed
+	for name_servers as _, ns {
+		if ns not in allowed {
+			return false
+		}
+	}
+	return true
+}
+
+if (length(domain_delegation_enforced_domain_names) else 0) > 0 {
+	all_resources = filter all_resources as _, r {
+		r.change.after.domain in domain_delegation_enforced_domain_names
+	}
+}
+
+// Filter resources that violate a given condition
+violators = filter all_resources as _, r {
+	all_delegation_records_included(r.change.after.name_servers) is false
+}
+
+// Build a summary report
+summaryreport = {
+	"name": doc.name,
+	"violations": map violators as _, violation {
+		{
+			"name":    violation.name,
+			"address": violation.address,
+			"type":    violation.type,
+			"message": strings.join(violation.change.after.name_servers, ", ") + doc.error,
+		}
+	},
+}
+
+main = rule {
+	helpers.summary(summaryreport, doc)
+}

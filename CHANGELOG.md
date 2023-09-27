@@ -2,6 +2,12 @@
 
 ## main
 
+## 0.3.0 (Unreleased)
+
+FEATURES:
+
+- **New Policy:** `enforce_domain_delegation` (dnsimple/policy-library-dnsimple-terraform#2)
+
 ## 0.2.0
 
 FEATURES:
