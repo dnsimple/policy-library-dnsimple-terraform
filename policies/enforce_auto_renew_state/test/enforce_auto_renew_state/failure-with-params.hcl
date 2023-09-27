@@ -8,7 +8,7 @@ import "module" "helpers" {
   source = "../../../../modules/helpers.sentinel"
 }
 
-param "transfer_lock_enforced_domain_names" {
+param "auto_renew_enforced_domain_names" {
   value = [
     "example-2.com"
   ]
