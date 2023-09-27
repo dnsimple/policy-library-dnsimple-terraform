@@ -27,3 +27,8 @@ policy "enforce_contact_id" {
   source = "./policies/enforce_contact_id/enforce_contact_id.sentinel"
   enforcement_level = "advisory"
 }
+
+policy "enforce_domain_delegation" {
+  source = "./policies/enforce_domain_delegation/enforce_domain_delegation.sentinel"
+  enforcement_level = "advisory"
+}

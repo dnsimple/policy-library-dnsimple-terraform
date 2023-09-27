@@ -1,0 +1,52 @@
+terraform_version = "1.5.6"
+
+resource_changes = {
+	"dnsimple_domain_delegation.test": {
+		"address": "dnsimple_domain_delegation.test",
+		"change": {
+			"actions": [
+				"create",
+			],
+			"after": {
+				"domain": "example.com",
+				"id": "example.com",
+				"name_servers": [
+					"ns1.name-servers.com",
+					"ns2.dnsimple.com",
+					"ns1.gcp.com",
+					"ns1.aws.com",
+				],
+			},
+		},
+		"deposed":        "",
+		"index":          null,
+		"mode":           "managed",
+		"module_address": "module.dnsimple",
+		"name":           "instance",
+		"provider_name":  "registry.terraform.io/dnsimple/dnsimple",
+		"type":           "dnsimple_domain_delegation",
+	},
+	"dnsimple_domain_delegation.test_2": {
+		"address": "dnsimple_domain_delegation.test_2",
+		"change": {
+			"actions": [
+				"create",
+			],
+			"after": {
+				"domain": "example-2.com",
+				"id": "example-2.com",
+				"name_servers": [
+					"ns1.name-servers.com",
+					"ns2.dnsimple.com",
+				],
+			},
+		},
+		"deposed":        "",
+		"index":          null,
+		"mode":           "managed",
+		"module_address": "module.dnsimple",
+		"name":           "instance",
+		"provider_name":  "registry.terraform.io/dnsimple/dnsimple",
+		"type":           "dnsimple_domain_delegation",
+	},
+}
