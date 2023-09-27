@@ -9,7 +9,7 @@ resource_changes = {
 			],
 			"after": {
 				"domain": "example.com",
-				"id": "example.com",
+				"id":     "example.com",
 				"name_servers": [
 					"ns1.name-servers.com",
 					"ns2.dnsimple.com",
@@ -34,7 +34,7 @@ resource_changes = {
 			],
 			"after": {
 				"domain": "example-2.com",
-				"id": "example-2.com",
+				"id":     "example-2.com",
 				"name_servers": [
 					"ns1.name-servers.com",
 					"ns2.dnsimple.com",
