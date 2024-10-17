@@ -2,7 +2,7 @@ name: sentinel
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ jobs:
         uses: bloominlabs/setup-hashicorp-releases@v2
         with:
           package: sentinel
-          version: ^0.23.0
+          version: ^0.28.0
       - name: Sentinel Format
         run: sentinel fmt -check=true $(find . -name "*.sentinel" -type f)
 
@@ -34,6 +34,6 @@ jobs:
         uses: bloominlabs/setup-hashicorp-releases@v2
         with:
           package: sentinel
-          version: ^0.23.0
+          version: ^0.28.0
       - name: Sentinel Test
         run: make tests
